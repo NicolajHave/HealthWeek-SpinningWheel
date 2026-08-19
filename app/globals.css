@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+
+/* Scoreboard, not wellness pastel. Amber is reserved for the Power-Up. */
+@theme {
+  --color-ink: #0d1b2a;
+  --color-lane: #1b3a5c;
+  --color-chalk: #f1f3ef;
+  --color-amber: #ffb020;
+  --color-mint: #6fd6a8;
+
+  --font-display: 'Archivo', 'Arial Black', system-ui, sans-serif;
+  --font-ui: 'Inter Tight', 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  /* Everything is read from 2-3 metres, so the scale is aggressive and fluid. */
+  --step-counter: clamp(5rem, 11vw, 10rem);
+  --step-headline: clamp(3.25rem, 7vw, 7.5rem);
+  --step-title: clamp(2rem, 3.6vw, 3.5rem);
+  --step-tile: clamp(1.15rem, 1.45vw, 1.75rem);
+  --step-body: clamp(1.25rem, 1.45vw, 1.75rem);
+  --step-small: clamp(1.05rem, 1.15vw, 1.35rem);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-chalk);
+  font-family: var(--font-ui);
+  font-size: var(--step-body);
+  line-height: 1.25;
+  overflow: hidden;
+  /* Numbers change constantly; tabular figures stop the counter jittering. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Nobody is going to select text on a kiosk, but they will drag it by accident. */
+body,
+button {
+  user-select: none;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-variation-settings: 'wdth' 125;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+}
+
+/* Host may drive this with a wireless keyboard: focus must be unmissable. */
+:focus-visible {
+  outline: 4px solid var(--color-mint);
+  outline-offset: 4px;
+}
+
+.btn {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--step-body);
+  border-radius: 9999px;
+  padding: 0.85em 2em;
+  border: 3px solid var(--color-chalk);
+  color: var(--color-chalk);
+  background: transparent;
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-chalk);
+  color: var(--color-ink);
+}
+
+.btn-mint {
+  background: var(--color-mint);
+  border-color: var(--color-mint);
+  color: var(--color-ink);
+}
+
+.btn-ink {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.btn-amber {
+  background: var(--color-amber);
+  border-color: var(--color-amber);
+  color: var(--color-ink);
+}
+
+@keyframes hw-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+.pulse {
+  animation: hw-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes hw-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in {
+  animation: hw-fade-in 320ms ease-out both;
+}
+
+/* One orchestrated moment — the spin and its settle. Restraint everywhere else. */
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .fade-in {
+    animation: none;
+  }
+}
