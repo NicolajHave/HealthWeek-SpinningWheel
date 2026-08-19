@@ -59,27 +59,38 @@ If a spin fails, nothing was consumed — the insert is the source of truth.
 
 ## Setup
 
-### 1. Supabase
+### 1. Supabase — already provisioned
 
-Create a project, then in the SQL editor run, in order:
+This app runs in the existing **SELECTED** project
+(`xpfoozuhndqnhvfyokki`, `https://xpfoozuhndqnhvfyokki.supabase.co`).
 
-1. `supabase/schema.sql` — tables, the unique constraint, RLS, and the private
-   `team-photos` storage bucket.
-2. `supabase/seed.sql` — the team list and PINs.
+That project is shared with other apps that already own a `teams` table, so
+everything here is namespaced: tables are **`hw_teams`** and **`hw_spins`**, and
+the storage bucket is **`hw-team-photos`**. Nothing outside those three objects
+was touched.
+
+`supabase/schema.sql` and `supabase/seed.sql` have both been applied — 14 teams
+are seeded, RLS is on with no policies, the bucket exists, and `hw_spins` is
+empty and ready for the day. Re-running either file is safe; both are
+idempotent.
 
 **Replace the placeholder team names and PINs in `supabase/seed.sql` before the
-event.** PINs must be 4 digits, unique, without a leading zero and without
-confusable runs (no `0000`, no `1234`). The PINs currently in the file are
-committed to this repository, so regenerate them if that matters to you.
+event**, and re-apply. PINs must be 4 digits, unique, without a leading zero and
+without confusable runs (no `0000`, no `1234`). The PINs currently in the file
+are committed to this repository, so regenerate them if that matters to you.
+
+To clear a test day and start clean: `delete from hw_spins;`
 
 ### 2. Environment
 
 Copy `.env.example` to `.env.local` for local work, and set the same values in
-the Vercel project before the first deploy:
+the Vercel project before the first deploy. The service role key is in the
+Supabase dashboard under **Settings → API → service_role**; paste it straight
+into Vercel and `.env.local` and keep it out of the repository:
 
 | Variable | What it is |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xpfoozuhndqnhvfyokki.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key. **Never** prefix with `NEXT_PUBLIC_` |
 | `ADMIN_PIN` | Unlocks `/admin` |
 | `KIOSK_SECRET` | Unlocks spinning on the physical screen |
@@ -194,6 +205,27 @@ components/Wheel.tsx  the wheel, drawn as SVG so labels stay crisp
 lib/segments.ts       the six segments; index = wheel position
 supabase/             schema and seed
 ```
+
+## What was verified, and what was not
+
+Verified against the live database: a second insert for the same team raises
+`23505` and leaves exactly one row holding the **first** segment (which is what
+makes `spin()` idempotent); deleting a spin row lets that team spin again, which
+is what `resetTeam` does; the `anon` role can read zero rows from `hw_teams` and
+its insert into `hw_spins` is rejected by RLS; and the board aggregates
+(`spunCount`, `repsBanked`, `powerUpCount`, per-team status) come out as
+`getBoard()` computes them.
+
+Verified in the browser: the board at 1920×1080, the keypad, the wheel settling
+with the winning segment under the pointer and its label upright, both result
+screens, and the photo step — including the capture and review flow, and the
+camera-denied path skipping silently.
+
+**Not yet verified: the app talking to Supabase over the network.** The build
+environment's egress policy blocks `supabase.co`, and the service role key is
+not readable from here, so no server action has actually made a round trip.
+That is what the rehearsal spin in step 3 of the morning checklist is for — do
+it before the first team arrives.
 
 ---
 

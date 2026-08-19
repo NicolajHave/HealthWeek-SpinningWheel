@@ -26,4 +26,10 @@ export function supabaseAdmin(): SupabaseClient {
   return cached
 }
 
-export const PHOTO_BUCKET = 'team-photos'
+/**
+ * This Supabase project is shared with other apps that already own a `teams`
+ * table, so everything here is namespaced.
+ */
+export const TEAMS = 'hw_teams'
+export const SPINS = 'hw_spins'
+export const PHOTO_BUCKET = 'hw-team-photos'

@@ -8,7 +8,7 @@
 -- The PINs below are published in this repository, so they are convenience, not
 -- security. Regenerate them before the event if that bothers you.
 
-insert into teams (name, pin, sort_order) values
+insert into hw_teams (name, pin, sort_order) values
   ('Finance',         '2748',  1),
   ('HR & People',     '3591',  2),
   ('IT',              '4826',  3),

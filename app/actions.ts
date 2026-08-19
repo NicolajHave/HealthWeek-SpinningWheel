@@ -2,7 +2,7 @@
 
 import crypto from 'node:crypto'
 import { revalidatePath } from 'next/cache'
-import { PHOTO_BUCKET, supabaseAdmin } from '@/lib/supabase'
+import { PHOTO_BUCKET, SPINS, TEAMS, supabaseAdmin } from '@/lib/supabase'
 import { isKiosk } from '@/lib/kiosk'
 import { SEGMENTS, SEGMENT_COUNT, labelForKey, repsForKey } from '@/lib/segments'
 
@@ -58,8 +58,8 @@ export async function getBoard(): Promise<Board> {
   const db = supabaseAdmin()
 
   const [{ data: teams, error: teamsError }, { data: spins, error: spinsError }] = await Promise.all([
-    db.from('teams').select('id, name, sort_order').order('sort_order', { ascending: true }),
-    db.from('spins').select('team_id, segment_key, completed_at, photo_path, photo_on_screen'),
+    db.from(TEAMS).select('id, name, sort_order').order('sort_order', { ascending: true }),
+    db.from(SPINS).select('team_id, segment_key, completed_at, photo_path, photo_on_screen'),
   ])
   if (teamsError) throw teamsError
   if (spinsError) throw spinsError
@@ -125,7 +125,7 @@ export async function authenticateTeam(pin: string): Promise<AuthResult> {
     const db = supabaseAdmin()
     // The PIN never travels back to the client — it is resolved to a team here.
     const { data: team, error } = await db
-      .from('teams')
+      .from(TEAMS)
       .select('id, name')
       .eq('pin', trimmed)
       .maybeSingle()
@@ -133,7 +133,7 @@ export async function authenticateTeam(pin: string): Promise<AuthResult> {
     if (!team) return { ok: false, reason: 'not_found' }
 
     const { data: spin } = await db
-      .from('spins')
+      .from(SPINS)
       .select('team_id')
       .eq('team_id', team.id)
       .maybeSingle()
@@ -166,7 +166,7 @@ export async function spin(teamId: string): Promise<SpinResult> {
     // race without a transaction. The unique constraint on spins.team_id is
     // what actually enforces one spin per team.
     const { data: inserted, error } = await db
-      .from('spins')
+      .from(SPINS)
       .insert({
         team_id: teamId,
         segment_key: segment.key,
@@ -192,7 +192,7 @@ export async function spin(teamId: string): Promise<SpinResult> {
 
     // Unique violation: this team already has a spin. Return the existing row.
     const { data: existing, error: readError } = await db
-      .from('spins')
+      .from(SPINS)
       .select('segment_key, completed_at, photo_path, photo_on_screen')
       .eq('team_id', teamId)
       .single()
@@ -220,7 +220,7 @@ export async function markCompleted(teamId: string): Promise<SimpleResult> {
   try {
     const db = supabaseAdmin()
     const { error } = await db
-      .from('spins')
+      .from(SPINS)
       .update({ completed_at: new Date().toISOString() })
       .eq('team_id', teamId)
       .is('completed_at', null)
@@ -253,7 +253,7 @@ export async function savePhoto(formData: FormData): Promise<SimpleResult> {
     if (uploadError) throw uploadError
 
     const { error } = await db
-      .from('spins')
+      .from(SPINS)
       .update({ photo_path: path, photo_on_screen: showOnScreen })
       .eq('team_id', teamId)
     if (error) throw error
@@ -294,8 +294,8 @@ export async function adminListTeams(adminPin: string): Promise<AdminResult> {
   try {
     const db = supabaseAdmin()
     const [{ data: teams, error: teamsError }, { data: spins, error: spinsError }] = await Promise.all([
-      db.from('teams').select('id, name, sort_order').order('sort_order', { ascending: true }),
-      db.from('spins').select('team_id, segment_key, completed_at, photo_path'),
+      db.from(TEAMS).select('id, name, sort_order').order('sort_order', { ascending: true }),
+      db.from(SPINS).select('team_id, segment_key, completed_at, photo_path'),
     ])
     if (teamsError) throw teamsError
     if (spinsError) throw spinsError
@@ -326,7 +326,7 @@ export async function resetTeam(adminPin: string, teamId: string): Promise<{ ok:
   try {
     const db = supabaseAdmin()
     const { data: spin } = await db
-      .from('spins')
+      .from(SPINS)
       .select('photo_path')
       .eq('team_id', teamId)
       .maybeSingle()
@@ -335,7 +335,7 @@ export async function resetTeam(adminPin: string, teamId: string): Promise<{ ok:
       await db.storage.from(PHOTO_BUCKET).remove([spin.photo_path as string])
     }
 
-    const { error } = await db.from('spins').delete().eq('team_id', teamId)
+    const { error } = await db.from(SPINS).delete().eq('team_id', teamId)
     if (error) throw error
 
     revalidatePath('/')
