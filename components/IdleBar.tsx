@@ -11,7 +11,7 @@ export default function IdleBar({ remaining }: { remaining: number }) {
     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[6px]" aria-hidden="true">
       <div
         className="h-full"
-        style={{ width: `${fraction * 100}%`, background: 'var(--color-chalk)', opacity: 0.45, transition: 'width 120ms linear' }}
+        style={{ width: `${fraction * 100}%`, background: 'var(--color-ink)', opacity: 0.35, transition: 'width 120ms linear' }}
       />
     </div>
   )

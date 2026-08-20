@@ -29,33 +29,53 @@ from top. Changing the order changes the wheel; nothing else needs touching.
 The wall sit counts its seconds as reps. It is a morale number, not a
 measurement.
 
----
+Once a team has spun, the only way off the result screen is **We did it!**.
+There is no opt-out button: the team presses it, the reps land, and the photo
+step follows. The scaling line stays — *take it at your own pace, half reps
+count, sit it out if you need to* — because that is about individuals inside a
+team, not about whether the team finishes.
 
-## How one spin can only ever happen once
+## Design
 
-- **The outcome is decided server-side.** `spin()` picks the segment with
-  `crypto.randomInt(0, 6)`, writes the row, and returns an index. The client
-  receives an index and animates toward it. It never chooses.
-- **`UNIQUE` constraint on `spins.team_id`.** One row per team, enforced by
-  Postgres. Reloading, incognito, a second device — none of it helps. Not
-  localStorage.
-- **Insert-then-catch, not check-then-insert.** The insert is attempted; on a
-  unique violation (`23505`) the existing row is read back and returned. This
-  closes the double-click race without a transaction.
-- **Idempotent.** Calling `spin()` twice for the same team always returns the
-  same segment, so the result screen is safe to reload.
-- **RLS denies everything to the anon role.** No policies exist on purpose. All
-  reads and writes go through server actions using the service role key, which
-  never reaches the client bundle.
-- **PINs are never sent to the client.** The client posts a PIN; the server
-  resolves it to a team.
-- **Kiosk cookie.** The deployment URL is public, so spinning is restricted to
-  the physical screen (see below). Every mutating server action re-checks the
-  cookie server-side, so the gate is not merely a client-side hide.
+The screen is read from 2–3 metres in a lit room, so the type is large and the
+contrast is absolute. Within that, it follows the Selected identity: light
+ground, near-black ink, and no colour of its own.
 
-If a spin fails, nothing was consumed — the insert is the source of truth.
+```
+--paper  #EFEFEF   ground
+--ink    #111111   type, rules, the prize
+--lane   #D9D9D9   wheel segment alternation
+--rule   #C2C2C2   hairlines and waiting tiles
+--mute   #8A8A8A   secondary annotation
+```
 
----
+**There is no accent colour.** The prize is the one inverted element — a solid
+ink wedge on the wheel, a full-bleed ink reveal on the result screen. It reads
+from across the room without borrowing a colour the brand does not use. The only
+colour that ever appears on the board comes from the team photos, which is the
+point: the system stays quiet and the room fills it in.
+
+**Type.** Statements are set in the display face, large and light, never
+uppercase. Every label, number and button is **Suisse Int'l Mono**, uppercase
+and widely tracked — the annotation voice from the guideline sheets. The board
+is laid out as numbered sections (`1. REPS BANKED TODAY`, `2. TEAMS THAT HAVE
+SPUN`) with hairline rules and corner registration marks, the same construction
+as the guideline artboards. `Selected Health Week` sits top-left as a section of
+the main brand, alongside Selected Destinations, Selected Archive and the rest,
+and honours the H/4 clear-space rule.
+
+Two things are stand-ins:
+
+- **The display face.** Only the mono was supplied, so headlines fall back to
+  Inter via Google Fonts. Drop the real Selected display face into
+  `public/fonts` and change `--font-display` in `app/globals.css` — one line.
+- **The wordmark.** `Selected Health Week` is set as live text in
+  `components/Marks.tsx`. Replace it with the supplied SVG when it is to hand.
+
+Suisse Int'l Mono is licensed from Swiss Typefaces and is served from
+`/public/fonts`, so it is downloadable by anyone who reaches the deployment.
+Check that the company's licence covers web use before this goes further than a
+one-day internal event.
 
 ## Setup
 
@@ -202,7 +222,9 @@ app/kiosk/route.ts    sets the kiosk cookie, then redirects to a clean URL
 app/admin/            PIN-gated team list and per-team reset
 components/Kiosk.tsx  the state machine: BOARD → PIN → READY → SPINNING → RESULT → PHOTO
 components/Wheel.tsx  the wheel, drawn as SVG so labels stay crisp
+components/Marks.tsx  the lockup and the registration marks
 lib/segments.ts       the six segments; index = wheel position
+public/fonts/         Suisse Int'l Mono, self-hosted
 supabase/             schema and seed
 ```
 

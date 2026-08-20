@@ -42,7 +42,7 @@ export default function PinPad({ onSubmit, error, busy, onCancel }: PinPadProps)
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-[clamp(1rem,2.5vh,2.5rem)] p-[clamp(1.5rem,3vw,4rem)]">
-      <h1 className="display text-center" style={{ fontSize: 'var(--step-title)' }}>
+      <h1 className="display text-center" style={{ fontSize: 'var(--step-headline)', fontWeight: 400 }}>
         Enter your team PIN
       </h1>
 
@@ -50,12 +50,11 @@ export default function PinPad({ onSubmit, error, busy, onCancel }: PinPadProps)
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="rounded-2xl"
             style={{
               width: 'clamp(3.5rem, 5vw, 6rem)',
               height: 'clamp(4.5rem, 6.5vw, 7.5rem)',
-              border: '4px solid var(--color-chalk)',
-              background: i < pin.length ? 'var(--color-chalk)' : 'transparent',
+              border: '2px solid var(--color-ink)',
+              background: i < pin.length ? 'var(--color-ink)' : 'transparent',
               transition: 'background-color 120ms ease',
             }}
           />
@@ -64,8 +63,8 @@ export default function PinPad({ onSubmit, error, busy, onCancel }: PinPadProps)
 
       <p
         aria-live="polite"
-        className="text-center"
-        style={{ fontSize: 'var(--step-body)', color: error ? 'var(--color-amber)' : 'transparent', minHeight: '1.4em' }}
+        className="label text-center"
+        style={{ color: error ? 'var(--color-ink)' : 'transparent', minHeight: '1.4em', maxWidth: '44ch' }}
       >
         {error ?? 'placeholder'}
       </p>
@@ -75,15 +74,15 @@ export default function PinPad({ onSubmit, error, busy, onCancel }: PinPadProps)
           <button
             key={key}
             type="button"
-            className="btn display"
+            className="btn"
             onClick={() => press(key)}
             disabled={busy}
             style={{
               width: 'clamp(6rem, 9vw, 10rem)',
               height: 'clamp(4rem, 6vh, 6rem)',
               padding: 0,
-              borderRadius: '1.25rem',
-              fontSize: key === 'clear' || key === 'back' ? 'var(--step-small)' : 'var(--step-title)',
+              letterSpacing: key === 'clear' ? '0.1em' : '0',
+              fontSize: key === 'clear' || key === 'back' ? 'var(--step-label)' : 'var(--step-title)',
               opacity: busy ? 0.5 : 1,
             }}
             aria-label={key === 'back' ? 'Delete last digit' : key === 'clear' ? 'Clear' : key}
@@ -93,7 +92,7 @@ export default function PinPad({ onSubmit, error, busy, onCancel }: PinPadProps)
         ))}
       </div>
 
-      <button type="button" className="btn" onClick={onCancel} style={{ fontSize: 'var(--step-small)' }}>
+      <button type="button" className="btn" onClick={onCancel} style={{ fontSize: 'var(--step-label)' }}>
         Back to the board
       </button>
     </div>

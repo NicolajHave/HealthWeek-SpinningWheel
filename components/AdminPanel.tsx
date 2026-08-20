@@ -35,8 +35,8 @@ export default function AdminPanel() {
   if (!teams) {
     return (
       <main className="mx-auto flex h-dvh max-w-md flex-col justify-center gap-6 overflow-y-auto p-8">
-        <h1 className="display" style={{ fontSize: 'var(--step-title)' }}>
-          Health Week admin
+        <h1 className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
+          Selected Health Week — admin
         </h1>
         <form
           className="flex flex-col gap-4"
@@ -52,14 +52,14 @@ export default function AdminPanel() {
             value={pin}
             onChange={(event) => setPin(event.target.value)}
             placeholder="Admin PIN"
-            className="rounded-xl px-4 py-3"
-            style={{ background: 'var(--color-lane)', color: 'var(--color-chalk)', border: '2px solid rgba(241,243,239,0.4)', fontSize: '1.25rem' }}
+            className="px-4 py-3"
+            style={{ background: 'transparent', color: 'var(--color-ink)', border: '2px solid var(--color-ink)', fontSize: '1.25rem' }}
           />
           <button type="submit" className="btn btn-primary" disabled={busy || pin.length === 0}>
             {busy ? 'Checking…' : 'Open'}
           </button>
         </form>
-        {message ? <p style={{ color: 'var(--color-amber)' }}>{message}</p> : null}
+        {message ? <p className="label">{message}</p> : null}
       </main>
     )
   }
@@ -67,7 +67,7 @@ export default function AdminPanel() {
   return (
     <main className="mx-auto flex h-dvh max-w-3xl flex-col gap-6 overflow-y-auto p-6">
       <header className="flex items-baseline justify-between gap-4">
-        <h1 className="display" style={{ fontSize: 'var(--step-title)' }}>
+        <h1 className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
           Teams
         </h1>
         <button type="button" className="btn" style={{ fontSize: '1rem', padding: '0.5em 1.2em' }} onClick={() => void load(pin)} disabled={busy}>
@@ -75,14 +75,14 @@ export default function AdminPanel() {
         </button>
       </header>
 
-      {message ? <p style={{ color: 'var(--color-mint)' }}>{message}</p> : null}
+      {message ? <p className="label">{message}</p> : null}
 
       <ul className="flex flex-col gap-3">
         {teams.map((team) => (
           <li
             key={team.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl p-4"
-            style={{ background: 'var(--color-lane)' }}
+            className="flex flex-wrap items-center justify-between gap-3 p-4"
+            style={{ border: '2px solid var(--color-rule)' }}
           >
             <div>
               <p style={{ fontSize: '1.25rem', fontWeight: 600 }}>{team.name}</p>
@@ -95,7 +95,7 @@ export default function AdminPanel() {
 
             {team.status === 'waiting' ? null : confirming === team.id ? (
               <div className="flex gap-2">
-                <button type="button" className="btn btn-amber" style={{ fontSize: '1rem', padding: '0.5em 1.2em' }} onClick={() => void doReset(team)} disabled={busy}>
+                <button type="button" className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.5em 1.2em' }} onClick={() => void doReset(team)} disabled={busy}>
                   Confirm reset
                 </button>
                 <button type="button" className="btn" style={{ fontSize: '1rem', padding: '0.5em 1.2em' }} onClick={() => setConfirming(null)}>

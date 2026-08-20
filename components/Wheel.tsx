@@ -23,9 +23,10 @@ function wedgePath(index: number): string {
 }
 
 function fillFor(index: number): string {
-  // Amber is reserved. It is the Power-Up and nothing else.
-  if (SEGMENTS[index].type === 'prize') return 'var(--color-amber)'
-  return index % 2 === 1 ? 'var(--color-lane)' : 'var(--color-ink)'
+  // The system carries no colour, so the prize is the one inverted wedge.
+  // Solid ink against light grey reads from the far side of the room.
+  if (SEGMENTS[index].type === 'prize') return 'var(--color-ink)'
+  return index % 2 === 1 ? 'var(--color-lane)' : '#ffffff'
 }
 
 export interface WheelProps {
@@ -109,13 +110,13 @@ export default function Wheel({ targetIndex, onSettled, jitter = 0 }: WheelProps
                 y1={0}
                 x2={x}
                 y2={y}
-                stroke="var(--color-chalk)"
-                strokeWidth={1.6}
+                stroke="var(--color-ink)"
+                strokeWidth={1.4}
               />
             )
           })}
 
-          <circle cx={0} cy={0} r={R} fill="none" stroke="var(--color-chalk)" strokeWidth={3.5} />
+          <circle cx={0} cy={0} r={R} fill="none" stroke="var(--color-ink)" strokeWidth={2.5} />
 
           {SEGMENTS.map((segment, i) => {
             const mid = i * 60 + 30
@@ -130,14 +131,14 @@ export default function Wheel({ targetIndex, onSettled, jitter = 0 }: WheelProps
               <g key={`label-${segment.key}`} transform={`rotate(${mid}) translate(0 ${-LABEL_R})${flip}`}>
                 <text
                   textAnchor="middle"
-                  fill={isPrize ? 'var(--color-ink)' : 'var(--color-chalk)'}
-                  className="display"
-                  style={{ fontSize: isPrize ? 8.6 : 7.2, letterSpacing: '0.04em' }}
+                  fill={isPrize ? 'var(--color-paper)' : 'var(--color-ink)'}
+                  className="mono"
+                  style={{ fontSize: isPrize ? 7.2 : 6.4, letterSpacing: '0.08em' }}
                 >
-                  <tspan x={0} y={-3}>
+                  <tspan x={0} y={-3.4}>
                     {segment.wheelLines[0]}
                   </tspan>
-                  <tspan x={0} y={isPrize ? 6.2 : 5.4}>
+                  <tspan x={0} y={isPrize ? 6.6 : 6}>
                     {segment.wheelLines[1]}
                   </tspan>
                 </text>
@@ -145,19 +146,13 @@ export default function Wheel({ targetIndex, onSettled, jitter = 0 }: WheelProps
             )
           })}
 
-          <circle cx={0} cy={0} r={HUB} fill="var(--color-ink)" stroke="var(--color-chalk)" strokeWidth={3.5} />
+          <circle cx={0} cy={0} r={HUB} fill="var(--color-paper)" stroke="var(--color-ink)" strokeWidth={2.5} />
         </svg>
       </div>
 
       {/* Pointer wedge, locked at top — deliberately outside the rotating group. */}
       <svg viewBox="-100 -100 200 200" className="pointer-events-none absolute inset-0 h-full w-full">
-        <polygon
-          points="0,-76 -12,-106 12,-106"
-          fill="var(--color-chalk)"
-          stroke="var(--color-ink)"
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
+        <polygon points="0,-76 -11,-104 11,-104" fill="var(--color-ink)" strokeLinejoin="round" />
       </svg>
     </div>
   )

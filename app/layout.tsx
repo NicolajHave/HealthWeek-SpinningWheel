@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Health Week — Team Spin Wheel',
+  title: 'Selected Health Week',
   description: 'One spin per team. Reps banked by the whole company.',
   // The URL is public so the board can be viewed from a desk, but it has no
   // business in a search index.
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0D1B2A',
+  themeColor: '#EFEFEF',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -23,11 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* Loaded via <link> rather than next/font so a build never depends on
-            reaching Google Fonts. Archivo carries a width axis; the display
-            style pins it to the expanded end. */}
+        {/* Stand-in for the Selected display face. Loaded via <link> rather
+            than next/font so a build never depends on reaching Google Fonts;
+            the brand mono is self-hosted from /public/fonts. */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter+Tight:wght@400..700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap"
           rel="stylesheet"
         />
       </head>

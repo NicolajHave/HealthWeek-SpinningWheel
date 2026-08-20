@@ -181,14 +181,16 @@ export default function Kiosk({
     case 'ready':
       screen = (
         <div className="flex h-full w-full flex-col items-center justify-center gap-[clamp(1.5rem,4vh,3rem)] p-[clamp(1.5rem,4vw,5rem)] text-center">
-          <h1 className="display" style={{ fontSize: 'var(--step-headline)', maxWidth: '16ch' }}>
+          <p className="label" style={{ color: 'var(--color-mute)' }}>
+            One spin. Make it count.
+          </p>
+          <h1 className="display" style={{ fontSize: 'var(--step-headline)', fontWeight: 400, maxWidth: '16ch' }}>
             {team?.name}
           </h1>
-          <p style={{ fontSize: 'var(--step-title)', opacity: 0.8 }}>One spin. Make it count.</p>
           <button
             type="button"
             className="btn btn-primary"
-            style={{ fontSize: 'var(--step-title)', padding: '0.6em 2.2em' }}
+            style={{ fontSize: 'var(--step-title)', padding: '0.5em 2rem' }}
             onClick={() => void startSpin()}
             disabled={busy}
             autoFocus
@@ -221,6 +223,7 @@ export default function Kiosk({
           busy={busy}
           powerUpLocation={powerUpLocation}
           powerUpPrize={powerUpPrize}
+          photoPrize={photoPrize}
           onConfirm={() => void confirmDone()}
           onDismiss={result.alreadyCompleted ? afterResult : toBoard}
         />
@@ -236,7 +239,7 @@ export default function Kiosk({
     case 'error':
       screen = (
         <div className="flex h-full w-full flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] p-8 text-center">
-          <h1 className="display" style={{ fontSize: 'var(--step-title)', maxWidth: '20ch' }}>
+          <h1 className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400, maxWidth: '22ch' }}>
             Something went wrong. Try again in a moment.
           </h1>
           <div className="flex flex-wrap justify-center gap-[clamp(0.75rem,1.5vw,1.5rem)]">

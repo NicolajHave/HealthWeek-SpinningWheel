@@ -11,7 +11,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex h-dvh w-screen items-center justify-center p-8 text-center">
-      <p className="display" style={{ fontSize: 'var(--step-title)', maxWidth: '20ch' }}>
+      <p className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400, maxWidth: '20ch' }}>
         One moment — back to the board.
       </p>
     </div>

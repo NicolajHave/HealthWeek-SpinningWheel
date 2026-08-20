@@ -34,6 +34,30 @@ export const SEGMENT_COUNT = SEGMENTS.length
 /** Same wording on all five exercise segments. */
 export const SCALING_LINE = 'Take it at your own pace. Half reps count. Sit it out if you need to.'
 
+/** Wheel positions of the five exercises — everything that is not the prize. */
+export const EXERCISE_INDEXES: readonly number[] = SEGMENTS.reduce<number[]>(
+  (acc, segment, index) => (segment.type === 'exercise' ? [...acc, index] : acc),
+  [],
+)
+
+/**
+ * Picks the wheel position for a spin.
+ *
+ * A prize roll is re-rolled across the five exercises once `powerUpsAwarded`
+ * has reached `limit`; a negative limit means no ceiling. Pure so the ceiling
+ * can be tested without a database.
+ */
+export function chooseSegmentIndex(
+  randomInt: (min: number, maxExclusive: number) => number,
+  powerUpsAwarded: number,
+  limit: number,
+): number {
+  const index = randomInt(0, SEGMENT_COUNT)
+  if (SEGMENTS[index].type !== 'prize') return index
+  if (limit < 0 || powerUpsAwarded < limit) return index
+  return EXERCISE_INDEXES[randomInt(0, EXERCISE_INDEXES.length)]
+}
+
 const BY_KEY = new Map(SEGMENTS.map((s, i) => [s.key, { ...s, index: i }]))
 
 export function segmentByKey(key: string): (Segment & { index: number }) | undefined {

@@ -2,54 +2,52 @@
 
 import type { Board as BoardData, BoardTeam } from '@/app/actions'
 import RepCounter from './RepCounter'
+import { Lockup, RegistrationMarks } from './Marks'
 
 function Tile({ team }: { team: BoardTeam }) {
   const isWaiting = team.status === 'waiting'
   const isDone = team.status === 'done'
+  const hasPhoto = Boolean(team.photoUrl)
+  // Done tiles invert to solid ink. At three metres that reads before the text does.
+  const onInk = isDone
 
   return (
     <div
-      className="fade-in relative flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl p-[clamp(0.75rem,1.1vw,1.25rem)]"
+      className="fade-in relative flex min-h-0 flex-col justify-between overflow-hidden p-[clamp(0.7rem,1vw,1.15rem)]"
+      aria-label={`${team.name}: ${team.status === 'waiting' ? 'has not spun' : team.status === 'done' ? `${team.segmentLabel}, completed` : `${team.segmentLabel}, not yet confirmed`}`}
       style={{
-        border: isWaiting ? '3px solid rgba(241,243,239,0.22)' : '3px solid rgba(241,243,239,0.5)',
-        background: isWaiting ? 'transparent' : 'var(--color-lane)',
+        border: `2px solid ${isWaiting ? 'var(--color-rule)' : 'var(--color-ink)'}`,
+        background: isDone ? 'var(--color-ink)' : 'transparent',
         backgroundImage: team.photoUrl ? `url(${team.photoUrl})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        color: onInk ? 'var(--color-paper)' : 'var(--color-ink)',
       }}
     >
-      {team.photoUrl ? (
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,27,42,0.25) 0%, rgba(13,27,42,0.85) 100%)' }} />
+      {hasPhoto ? (
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(180deg, rgba(17,17,17,0.15) 0%, rgba(17,17,17,0.8) 100%)' }}
+        />
       ) : null}
 
       <div className="relative flex items-start justify-between gap-2">
         <span
-          className="display leading-[0.95]"
+          className="display"
           style={{
             // Long department names step down a size rather than break mid-word.
-            fontSize: team.name.length > 12 ? 'calc(var(--step-tile) * 0.78)' : 'var(--step-tile)',
-            opacity: isWaiting ? 0.5 : 1,
+            fontSize: team.name.length > 12 ? 'calc(var(--step-tile) * 0.8)' : 'var(--step-tile)',
+            fontWeight: 500,
+            color: isWaiting ? 'var(--color-mute)' : undefined,
             overflowWrap: 'anywhere',
           }}
         >
           {team.name}
         </span>
-        {isDone ? (
-          <span aria-label="completed" style={{ color: 'var(--color-mint)', fontSize: 'var(--step-tile)' }}>
-            ✓
-          </span>
-        ) : null}
       </div>
 
       {team.segmentLabel ? (
-        <span
-          className="relative mt-2"
-          style={{
-            fontSize: 'var(--step-small)',
-            color: isDone ? 'var(--color-mint)' : 'var(--color-chalk)',
-            opacity: isDone ? 1 : 0.85,
-          }}
-        >
+        <span className="label relative mt-2" style={{ opacity: onInk || hasPhoto ? 0.85 : 0.7 }}>
           {team.segmentLabel}
         </span>
       ) : null}
@@ -57,9 +55,26 @@ function Tile({ team }: { team: BoardTeam }) {
   )
 }
 
+/** A numbered section heading, as the guideline sheets set them. */
+function Section({ n, title, children, className, style }: {
+  n: string
+  title: string
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <section className={className} style={style}>
+      <p className="label rule pt-[0.6em]" style={{ color: 'var(--color-mute)' }}>
+        {n}. {title}
+      </p>
+      {children}
+    </section>
+  )
+}
+
 export interface BoardProps {
   board: BoardData
-  /** Copy at the bottom: the call to action, or where the screen is. */
   canSpin: boolean
   kioskLocation: string
   photoPrize: string
@@ -69,77 +84,80 @@ export default function Board({ board, canSpin, kioskLocation, photoPrize }: Boa
   const progress = board.teamCount > 0 ? board.spunCount / board.teamCount : 0
 
   return (
-    <div className="flex h-full w-full flex-col gap-[clamp(1rem,1.8vh,2rem)] p-[clamp(1.25rem,2.2vw,3rem)]">
-      <header className="flex flex-wrap items-end justify-between gap-[clamp(1rem,2vw,2.5rem)]">
-        <div>
-          <p className="display opacity-70" style={{ fontSize: 'var(--step-small)', letterSpacing: '0.14em' }}>
-            Reps banked today
-          </p>
-          {/* The one number the whole room is here for. */}
-          <div className="display" style={{ fontSize: 'var(--step-counter)' }}>
-            <RepCounter value={board.repsBanked} />
-          </div>
-        </div>
+    <div className="relative h-full w-full">
+      <RegistrationMarks />
 
-        <div className="min-w-[clamp(18rem,28vw,34rem)] flex-1">
-          <p style={{ fontSize: 'var(--step-body)' }}>
-            <strong style={{ fontWeight: 700 }}>{board.spunCount}</strong> of{' '}
-            <strong style={{ fontWeight: 700 }}>{board.teamCount}</strong> teams have spun
+      <div className="flex h-full w-full flex-col gap-[clamp(0.9rem,1.6vh,1.9rem)] p-[clamp(1.5rem,2.6vw,3.5rem)]">
+        <header className="flex items-baseline justify-between gap-6">
+          <Lockup />
+          <p className="label" style={{ color: 'var(--color-mute)' }}>
+            One spin per team
           </p>
-          <div
-            className="mt-2 h-[clamp(1rem,1.4vh,1.5rem)] w-full overflow-hidden rounded-full"
-            style={{ background: 'var(--color-lane)' }}
-            role="progressbar"
-            aria-valuenow={board.spunCount}
-            aria-valuemin={0}
-            aria-valuemax={board.teamCount}
-          >
+        </header>
+
+        <div className="grid gap-[clamp(1rem,2.5vw,3rem)]" style={{ gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.5fr)' }}>
+          <Section n="1" title="Reps banked today">
+            <div className="display" style={{ fontSize: 'var(--step-counter)', fontWeight: 400 }}>
+              <RepCounter value={board.repsBanked} />
+            </div>
+          </Section>
+
+          <Section n="2" title="Teams that have spun">
+            <p className="display" style={{ fontSize: 'var(--step-counter)', fontWeight: 400 }}>
+              <span className="mono">{board.spunCount}</span>
+              <span style={{ color: 'var(--color-mute)' }}>/{board.teamCount}</span>
+            </p>
             <div
-              className="h-full rounded-full"
-              style={{ width: `${Math.round(progress * 100)}%`, background: 'var(--color-mint)', transition: 'width 600ms ease-out' }}
-            />
+              className="mt-[0.4em] h-[clamp(0.7rem,1vh,1.1rem)] w-full"
+              style={{ border: '2px solid var(--color-ink)' }}
+              role="progressbar"
+              aria-valuenow={board.spunCount}
+              aria-valuemin={0}
+              aria-valuemax={board.teamCount}
+            >
+              <div
+                className="h-full"
+                style={{ width: `${Math.round(progress * 100)}%`, background: 'var(--color-ink)', transition: 'width 600ms ease-out' }}
+              />
+            </div>
+          </Section>
+
+          <Section n="3" title="Power-Ups won">
+            <p className="display" style={{ fontSize: 'var(--step-counter)', fontWeight: 400 }}>
+              <span className="mono">{board.powerUpCount}</span>
+            </p>
+          </Section>
+        </div>
+
+        <Section n="4" title="Teams" className="flex min-h-0 flex-1 flex-col">
+          <div
+            className="mt-[0.6em] grid min-h-0 flex-1 gap-[clamp(0.5rem,0.8vw,0.9rem)]"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(12rem, 16vw, 18rem), 1fr))',
+              gridAutoRows: '1fr',
+            }}
+          >
+            {board.teams.map((team) => (
+              <Tile key={team.name} team={team} />
+            ))}
           </div>
-        </div>
+        </Section>
 
-        <div className="text-right">
-          <p className="display opacity-70" style={{ fontSize: 'var(--step-small)', letterSpacing: '0.14em' }}>
-            Power-Ups won
-          </p>
-          <p className="display" style={{ fontSize: 'var(--step-title)', color: 'var(--color-amber)' }}>
-            {board.powerUpCount}
-          </p>
-        </div>
-      </header>
+        <footer className="rule flex flex-wrap items-center justify-between gap-4 pt-[0.7em]">
+          {/* Permanent, all day. This is what keeps photo participation alive. */}
+          <p className="label">Best team photo wins a {photoPrize} — take one after your spin</p>
 
-      <main
-        className="grid min-h-0 flex-1 gap-[clamp(0.6rem,1vw,1.1rem)]"
-        style={{
-          gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(12rem, 16vw, 18rem), 1fr))',
-          gridAutoRows: '1fr',
-        }}
-      >
-        {board.teams.map((team) => (
-          <Tile key={team.name} team={team} />
-        ))}
-      </main>
-
-      <footer className="flex flex-wrap items-center justify-between gap-[clamp(0.75rem,1.5vw,2rem)]">
-        {/* Permanent, all day. This is what keeps photo participation alive. */}
-        <p
-          className="rounded-full px-[1.2em] py-[0.5em]"
-          style={{ border: '3px solid var(--color-amber)', color: 'var(--color-amber)', fontSize: 'var(--step-small)' }}
-        >
-          Best team photo wins a {photoPrize} too — take one after your spin.
-        </p>
-
-        {canSpin ? (
-          <p className="display pulse" style={{ fontSize: 'var(--step-title)' }}>
-            Tap to spin
-          </p>
-        ) : (
-          <p style={{ fontSize: 'var(--step-body)', opacity: 0.7 }}>Spin at the screen in {kioskLocation}.</p>
-        )}
-      </footer>
+          {canSpin ? (
+            <p className="display pulse" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
+              Tap to spin
+            </p>
+          ) : (
+            <p className="label" style={{ color: 'var(--color-mute)' }}>
+              Spin at the screen in {kioskLocation}
+            </p>
+          )}
+        </footer>
+      </div>
     </div>
   )
 }

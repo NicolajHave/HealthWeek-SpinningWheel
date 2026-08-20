@@ -123,12 +123,10 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
   if (stage === 'offer') {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-[clamp(1rem,3vh,2.5rem)] p-[clamp(1.5rem,4vw,5rem)] text-center">
-        <h1 className="display" style={{ fontSize: 'var(--step-headline)' }}>
+        <h1 className="display" style={{ fontSize: 'var(--step-headline)', fontWeight: 400 }}>
           Take a team photo?
         </h1>
-        <p style={{ fontSize: 'var(--step-title)', color: 'var(--color-amber)' }}>
-          Best one today wins a {photoPrize}.
-        </p>
+        <p className="label">Best one today wins a {photoPrize}</p>
         <div className="flex flex-wrap justify-center gap-[clamp(1rem,2vw,2rem)]">
           <button type="button" className="btn btn-primary" onClick={() => void startCamera()}>
             Take a photo
@@ -137,7 +135,7 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
             No thanks
           </button>
         </div>
-        <p style={{ fontSize: 'var(--step-small)', opacity: 0.75, maxWidth: '38ch' }}>
+        <p style={{ fontSize: 'var(--step-body)', opacity: 0.65, maxWidth: '40ch' }}>
           Your photo goes on the board and into the prize. Nothing is saved unless you choose to keep it.
         </p>
       </div>
@@ -147,9 +145,7 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
   if (stage === 'saving') {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <p className="display" style={{ fontSize: 'var(--step-title)' }}>
-          Saving…
-        </p>
+        <p className="label">Saving…</p>
       </div>
     )
   }
@@ -157,8 +153,8 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-[clamp(0.75rem,2vh,1.75rem)] p-[clamp(1rem,2.5vw,3rem)]">
       <div
-        className="relative overflow-hidden rounded-3xl"
-        style={{ height: 'min(62vh, 62vw)', aspectRatio: '4 / 3', background: 'var(--color-lane)', border: '4px solid var(--color-chalk)' }}
+        className="relative overflow-hidden"
+        style={{ height: 'min(62vh, 62vw)', aspectRatio: '4 / 3', background: 'var(--color-lane)', border: '2px solid var(--color-ink)' }}
       >
         {stage === 'review' && shotUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -174,8 +170,8 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
         )}
 
         {stage === 'countdown' ? (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(13,27,42,0.35)' }}>
-            <span className="display" style={{ fontSize: 'var(--step-counter)' }}>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(239,239,239,0.55)' }}>
+            <span className="mono" style={{ fontSize: 'var(--step-counter)' }}>
               {count > 0 ? count : '📸'}
             </span>
           </div>
@@ -209,7 +205,7 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
 
       {stage === 'review' ? (
         <div className="flex flex-wrap justify-center gap-[clamp(0.75rem,1.5vw,1.5rem)]">
-          <button type="button" className="btn btn-mint" onClick={() => void upload()}>
+          <button type="button" className="btn btn-primary" onClick={() => void upload()}>
             Use this one
           </button>
           <button

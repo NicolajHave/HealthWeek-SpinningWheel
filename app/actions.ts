@@ -4,7 +4,7 @@ import crypto from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { PHOTO_BUCKET, SPINS, TEAMS, supabaseAdmin } from '@/lib/supabase'
 import { isKiosk } from '@/lib/kiosk'
-import { SEGMENTS, SEGMENT_COUNT, labelForKey, repsForKey } from '@/lib/segments'
+import { SEGMENTS, chooseSegmentIndex, labelForKey, repsForKey } from '@/lib/segments'
 
 /* ------------------------------------------------------------------ types */
 
@@ -43,6 +43,14 @@ export type SpinResult =
   | { ok: false; reason: 'not_kiosk' | 'error' }
 
 export type SimpleResult = { ok: true } | { ok: false; reason: 'not_kiosk' | 'error' }
+
+/**
+ * Ceiling on how many Power-Ups the wheel will hand out in a day. Once it is
+ * reached, a prize roll is re-rolled across the five exercises instead. Not
+ * surfaced anywhere in the UI. Override with POWER_UP_LIMIT if the prize budget
+ * changes.
+ */
+const POWER_UP_LIMIT = Number(process.env.POWER_UP_LIMIT ?? 3)
 
 interface SpinRow {
   team_id: string
@@ -159,7 +167,13 @@ export async function spin(teamId: string): Promise<SpinResult> {
 
   try {
     const db = supabaseAdmin()
-    const segmentIndex = crypto.randomInt(0, SEGMENT_COUNT)
+
+    const { count: powerUpsAwarded } = await db
+      .from(SPINS)
+      .select('team_id', { count: 'exact', head: true })
+      .eq('segment_key', 'power_up')
+
+    const segmentIndex = chooseSegmentIndex(crypto.randomInt, powerUpsAwarded ?? 0, POWER_UP_LIMIT)
     const segment = SEGMENTS[segmentIndex]
 
     // Insert-then-catch, not check-then-insert: this closes the double-click
