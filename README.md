@@ -133,11 +133,26 @@ Vercel provides it.
 
 Run through this on the kiosk machine, in order:
 
-1. Open the deployment at **`/?kiosk=<KIOSK_SECRET>`**. This sets an httpOnly,
+1. Open the deployment at **`/kiosk/<KIOSK_SECRET>`** — e.g.
+   `https://<your-app>.vercel.app/kiosk/restauranten`. This sets an httpOnly,
    `SameSite=Lax` cookie that expires after 24 hours, then redirects to `/` so
-   the secret does not sit in the address bar. **Never type the URL with the
-   secret again.** Without the cookie the app renders the board read-only — no
+   the secret does not sit in the address bar of a screen the whole room can
+   see. Without the cookie the app renders the board read-only — no
    tap-to-spin, no keypad, just a line saying where the screen is.
+
+   `/?kiosk=<KIOSK_SECRET>` still works. Prefer the path form when the link has
+   to survive being pasted into a mail client or read down the phone: there is
+   no query string to strip and no `?` to lose.
+
+   The supplied secret is trimmed and compared case-insensitively, so a link
+   that picked up a capital or a trailing space still opens. The cookie always
+   stores the exact value from the environment.
+
+   **If the link does not match, the board says so** — *"That link did not
+   unlock this screen"* — rather than silently showing the read-only view.
+   Staying quiet bought nothing, because the board already shows whether it is
+   unlocked, and it made a mistyped link impossible to tell from a broken
+   screen.
 2. Tap the screen once. The app goes fullscreen on first interaction, so no
    browser chrome is visible or tappable.
 3. Do one rehearsal spin with a spare team, take a photo with the actual camera,
@@ -231,14 +246,21 @@ npm run build
 npm run typecheck
 ```
 
-Locally the kiosk cookie is set the same way: `/?kiosk=<KIOSK_SECRET>`.
+Locally the kiosk cookie is set the same way: `/kiosk/<KIOSK_SECRET>`.
+
+**Sharing the unlock link is sharing the screen.** Anyone who has it can spin
+from their desk, which is exactly what the cookie exists to prevent. That is
+fine for a test run — just change `KIOSK_SECRET` in Vercel before the event and
+re-open the link on the kiosk, and every link handed out beforehand goes dead.
 
 ## Layout
 
 ```
 app/actions.ts        every server action; the only place Supabase is touched
 app/page.tsx          the single kiosk route
-app/kiosk/route.ts    sets the kiosk cookie, then redirects to a clean URL
+app/kiosk/route.ts    unlock via ?secret=…
+app/kiosk/[secret]/   unlock via /kiosk/<secret> — the form to hand to someone
+lib/kiosk-unlock.ts   sets the cookie, then redirects to a clean URL
 app/admin/            PIN-gated team list and per-team reset
 components/Kiosk.tsx  the state machine: BOARD → PIN → READY → SPINNING → RESULT → PHOTO
 components/Wheel.tsx  the wheel, drawn as SVG so labels stay crisp

@@ -76,11 +76,12 @@ function Section({ n, title, children, className, style }: {
 export interface BoardProps {
   board: BoardData
   canSpin: boolean
+  unlockFailed?: boolean
   kioskLocation: string
   photoPrize: string
 }
 
-export default function Board({ board, canSpin, kioskLocation, photoPrize }: BoardProps) {
+export default function Board({ board, canSpin, unlockFailed = false, kioskLocation, photoPrize }: BoardProps) {
   const progress = board.teamCount > 0 ? board.spunCount / board.teamCount : 0
 
   return (
@@ -150,6 +151,14 @@ export default function Board({ board, canSpin, kioskLocation, photoPrize }: Boa
           {canSpin ? (
             <p className="display pulse" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
               Tap to spin
+            </p>
+          ) : unlockFailed ? (
+            <p
+              className="label"
+              style={{ background: 'var(--color-ink)', color: 'var(--color-paper)', padding: '0.5em 1em' }}
+              role="status"
+            >
+              That link did not unlock this screen — check it and open it again
             </p>
           ) : (
             <p className="label" style={{ color: 'var(--color-mute)' }}>

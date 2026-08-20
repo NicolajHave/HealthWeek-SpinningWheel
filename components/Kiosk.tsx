@@ -36,6 +36,8 @@ interface SpinState {
 export interface KioskProps {
   initialBoard: BoardData
   canSpin: boolean
+  /** The visitor arrived from an unlock link that did not match. */
+  unlockFailed?: boolean
   powerUpLocation: string
   powerUpPrize: string
   photoPrize: string
@@ -45,6 +47,7 @@ export interface KioskProps {
 export default function Kiosk({
   initialBoard,
   canSpin,
+  unlockFailed = false,
   powerUpLocation,
   powerUpPrize,
   photoPrize,
@@ -256,7 +259,13 @@ export default function Kiosk({
 
     default:
       screen = (
-        <Board board={board} canSpin={canSpin} kioskLocation={kioskLocation} photoPrize={photoPrize} />
+        <Board
+          board={board}
+          canSpin={canSpin}
+          unlockFailed={unlockFailed}
+          kioskLocation={kioskLocation}
+          photoPrize={photoPrize}
+        />
       )
   }
 
