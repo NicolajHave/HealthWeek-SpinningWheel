@@ -11,6 +11,20 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
  */
 let cached: SupabaseClient | null = null
 
+/**
+ * No request may hang. The screen is unattended, so a Supabase that is slow or
+ * unreachable has to surface as a failed action the app can recover from —
+ * "Something went wrong, try again" — rather than a team standing in front of a
+ * frozen "Spinning…" until someone fetches a laptop.
+ */
+const REQUEST_TIMEOUT_MS = 8000
+
+const timedFetch: typeof fetch = (input, init) => {
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+  const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+  return fetch(input, { ...init, signal })
+}
+
 export function supabaseAdmin(): SupabaseClient {
   if (cached) return cached
 
@@ -22,6 +36,7 @@ export function supabaseAdmin(): SupabaseClient {
 
   cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: timedFetch },
   })
   return cached
 }

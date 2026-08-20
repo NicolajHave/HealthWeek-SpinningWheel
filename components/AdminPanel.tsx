@@ -120,6 +120,73 @@ export default function AdminPanel() {
       <p style={{ fontSize: '0.95rem', opacity: 0.7 }}>
         Reset deletes the team&rsquo;s spin row and any photo they shared, and lets them spin again.
       </p>
+
+      <PhotoGallery teams={teams} />
     </main>
+  )
+}
+
+/**
+ * The after-the-event job: get the photos off the kiosk and onto the intranet.
+ * Downloads go through /admin/photos rather than the signed Supabase URL, so
+ * they are same-origin and the browser saves them under a readable name.
+ */
+function PhotoGallery({ teams }: { teams: AdminTeam[] }) {
+  const withPhotos = teams.filter((team) => team.hasPhoto)
+
+  return (
+    <section className="mt-4 flex flex-col gap-4 pb-10">
+      <div className="rule flex flex-wrap items-baseline justify-between gap-3 pt-4">
+        <h2 className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
+          Photos
+        </h2>
+        <p className="label" style={{ color: 'var(--color-mute)' }}>
+          {withPhotos.length} of {teams.length} teams
+        </p>
+      </div>
+
+      {withPhotos.length === 0 ? (
+        <p style={{ fontSize: '1rem', opacity: 0.7 }}>No photos have been shared yet.</p>
+      ) : (
+        <>
+          <a
+            className="btn btn-primary self-start"
+            style={{ fontSize: '1rem', padding: '0.6em 1.4em', textDecoration: 'none' }}
+            href="/admin/photos"
+          >
+            Download all ({withPhotos.length}) as ZIP
+          </a>
+
+          <ul className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(13rem, 1fr))' }}>
+            {withPhotos.map((team) => (
+              <li key={team.id} className="flex flex-col gap-2">
+                {team.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={team.photoUrl}
+                    alt={`${team.name} team photo`}
+                    className="w-full object-cover"
+                    style={{ aspectRatio: '4 / 3', border: '2px solid var(--color-ink)' }}
+                  />
+                ) : null}
+                <p style={{ fontSize: '1rem', fontWeight: 600 }}>{team.name}</p>
+                <a
+                  className="btn self-start"
+                  style={{ fontSize: '0.85rem', padding: '0.5em 1em', textDecoration: 'none' }}
+                  href={`/admin/photos?team=${encodeURIComponent(team.id)}`}
+                >
+                  Download
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <p style={{ fontSize: '0.95rem', opacity: 0.7 }}>
+            Teams were told photos are deleted after Health Week. Once these are on the intranet, empty the
+            <code> hw-team-photos </code> bucket in Supabase.
+          </p>
+        </>
+      )}
+    </section>
   )
 }

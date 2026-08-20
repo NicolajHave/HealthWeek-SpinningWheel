@@ -2,9 +2,11 @@
 
 import crypto from 'node:crypto'
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { PHOTO_BUCKET, SPINS, TEAMS, supabaseAdmin } from '@/lib/supabase'
-import { isKiosk } from '@/lib/kiosk'
+import { ADMIN_COOKIE, ADMIN_COOKIE_MAX_AGE, adminPinOk, isKiosk } from '@/lib/kiosk'
 import { SEGMENTS, chooseSegmentIndex, labelForKey, repsForKey } from '@/lib/segments'
+import { photoFilename } from '@/lib/photos'
 
 /* ------------------------------------------------------------------ types */
 
@@ -287,23 +289,30 @@ export interface AdminTeam {
   status: TeamStatus
   segmentLabel?: string
   hasPhoto: boolean
+  /** Signed preview URL, present only when the team shared a photo. */
+  photoUrl?: string
+  /** File name the download route will serve it under. */
+  photoFilename?: string
 }
 
 export type AdminResult =
   | { ok: true; teams: AdminTeam[] }
   | { ok: false; reason: 'bad_pin' | 'error' }
 
-function adminPinOk(pin: string): boolean {
-  const expected = process.env.ADMIN_PIN
-  if (!expected) return false
-  const a = Buffer.from(pin ?? '')
-  const b = Buffer.from(expected)
-  return a.length === b.length && crypto.timingSafeEqual(a, b)
-}
-
 /** Admin views are exempt from the kiosk cookie — the organiser fixes things from their phone. */
 export async function adminListTeams(adminPin: string): Promise<AdminResult> {
   if (!adminPinOk(adminPin)) return { ok: false, reason: 'bad_pin' }
+
+  // Remember the sign-in, so the photo download route can authorise the
+  // organiser without the PIN travelling in a URL.
+  const jar = await cookies()
+  jar.set(ADMIN_COOKIE, adminPin, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: ADMIN_COOKIE_MAX_AGE,
+  })
 
   try {
     const db = supabaseAdmin()
@@ -315,16 +324,29 @@ export async function adminListTeams(adminPin: string): Promise<AdminResult> {
     if (spinsError) throw spinsError
 
     const byTeam = new Map((spins ?? []).map((s) => [s.team_id as string, s]))
+
+    const photoPaths = (spins ?? []).filter((s) => s.photo_path).map((s) => s.photo_path as string)
+    const signedByPath = new Map<string, string>()
+    if (photoPaths.length > 0) {
+      const { data: signed } = await db.storage.from(PHOTO_BUCKET).createSignedUrls(photoPaths, 60 * 60)
+      for (const entry of signed ?? []) {
+        if (entry.path && entry.signedUrl) signedByPath.set(entry.path, entry.signedUrl)
+      }
+    }
+
     return {
       ok: true,
       teams: (teams ?? []).map((team) => {
         const spin = byTeam.get(team.id as string)
+        const photoUrl = spin?.photo_path ? signedByPath.get(spin.photo_path as string) : undefined
         return {
           id: team.id as string,
           name: team.name as string,
           status: !spin ? 'waiting' : spin.completed_at ? 'done' : 'spun',
           ...(spin ? { segmentLabel: labelForKey(spin.segment_key as string) } : {}),
           hasPhoto: Boolean(spin?.photo_path),
+          ...(photoUrl ? { photoUrl } : {}),
+          ...(spin?.photo_path ? { photoFilename: photoFilename(team.name as string) } : {}),
         }
       }),
     }

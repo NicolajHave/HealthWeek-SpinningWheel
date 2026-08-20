@@ -159,11 +159,28 @@ them out.
 
 Gated by `ADMIN_PIN` and deliberately exempt from the kiosk cookie, so the
 organiser can fix things from their own phone without walking to the screen.
-Shows every team with its current status and a reset button per row. Reset
-deletes the team's spin row and any photo they shared, and lets them spin again.
+Signing in sets an httpOnly `hw_admin` cookie for eight hours.
 
-Someone will spin for the wrong team within the first twenty minutes. This is
+**Reset.** Every team with its current status and a reset button per row. Reset
+deletes the team's spin row and any photo they shared, and lets them spin again.
+Someone will spin for the wrong team within the first twenty minutes; this is
 the fix.
+
+**Photos.** A gallery of every shared photo, with a download per team and a
+**Download all as ZIP**. Both go through `/admin/photos` rather than the signed
+Supabase URL: same-origin, so the browser saves the file instead of navigating
+to it, and each one arrives named `selected-health-week-<team>.jpg`.
+
+The ZIP is written by hand in `lib/zip.ts` — stored entries, no compression,
+because JPEGs are already compressed and deflating them would only add a
+dependency. It streams: each photo is fetched, framed and pushed, then dropped,
+so a full set is never held in memory and the response is not bounded by a
+buffered body limit. A photo that cannot be read is skipped rather than failing
+the archive. If a very large set ever exceeds the function's time limit, the
+per-team downloads still work.
+
+Once the photos are on the intranet, empty the `hw-team-photos` bucket —
+teams were told they would be deleted after Health Week.
 
 ---
 
@@ -199,6 +216,9 @@ Nobody will be there to fix a frozen screen, so:
 - **Poll failures degrade quietly**: the board keeps its last good state and
   retries on the next 5-second tick rather than blanking.
 - **Wake Lock** is requested on load and re-requested on visibility change.
+- **Every Supabase request times out after 8 seconds.** Without it, a slow or
+  unreachable database leaves a team standing in front of a frozen
+  "Spinning…" instead of the error screen with a retry button.
 
 ---
 
@@ -224,6 +244,7 @@ components/Kiosk.tsx  the state machine: BOARD → PIN → READY → SPINNING �
 components/Wheel.tsx  the wheel, drawn as SVG so labels stay crisp
 components/Marks.tsx  the lockup and the registration marks
 lib/segments.ts       the six segments; index = wheel position
+lib/zip.ts            streaming ZIP writer for the photo download
 public/fonts/         Suisse Int'l Mono, self-hosted
 supabase/             schema and seed
 ```
