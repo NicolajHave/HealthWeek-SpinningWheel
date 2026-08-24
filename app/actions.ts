@@ -12,19 +12,20 @@ import { photoFilename } from '@/lib/photos'
 
 export type TeamStatus = 'waiting' | 'spun' | 'done'
 
-export interface BoardTeam {
-  name: string
-  status: TeamStatus
-  segmentLabel?: string
-  photoUrl?: string
-}
-
+/**
+ * What the screen in the room is allowed to know.
+ *
+ * Deliberately no per-team anything. This is not a competition, and a grid of
+ * who has finished and who has not reads as a table however it is labelled — so
+ * team names and statuses are dropped here, server-side, rather than hidden in
+ * the markup. Photos come through without the team they belong to.
+ */
 export interface Board {
-  teams: BoardTeam[]
   spunCount: number
   teamCount: number
   repsBanked: number
-  powerUpCount: number
+  /** Shared photos, newest first. No names attached. */
+  photoUrls: string[]
 }
 
 export type AuthResult =
@@ -54,63 +55,44 @@ export type SimpleResult = { ok: true } | { ok: false; reason: 'not_kiosk' | 'er
  */
 const POWER_UP_LIMIT = Number(process.env.POWER_UP_LIMIT ?? 3)
 
-interface SpinRow {
-  team_id: string
-  segment_key: string
-  completed_at: string | null
-  photo_path: string | null
-  photo_on_screen: boolean
-}
-
 /* ------------------------------------------------------------- board read */
 
 export async function getBoard(): Promise<Board> {
   const db = supabaseAdmin()
 
   const [{ data: teams, error: teamsError }, { data: spins, error: spinsError }] = await Promise.all([
-    db.from(TEAMS).select('id, name, sort_order').order('sort_order', { ascending: true }),
-    db.from(SPINS).select('team_id, segment_key, completed_at, photo_path, photo_on_screen'),
+    db.from(TEAMS).select('id'),
+    db.from(SPINS).select('segment_key, completed_at, created_at, photo_path, photo_on_screen'),
   ])
   if (teamsError) throw teamsError
   if (spinsError) throw spinsError
 
-  const spinByTeam = new Map<string, SpinRow>((spins ?? []).map((s) => [s.team_id as string, s as SpinRow]))
-
-  // One signed-URL round trip for every photo that is on the board.
+  // One signed-URL round trip for every photo that is on the board, newest
+  // first so the strip shows what just happened in the room.
   const photoPaths = (spins ?? [])
     .filter((s) => s.photo_on_screen && s.photo_path)
+    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
     .map((s) => s.photo_path as string)
-  const signedByPath = new Map<string, string>()
+
+  const photoUrls: string[] = []
   if (photoPaths.length > 0) {
     const { data: signed } = await db.storage.from(PHOTO_BUCKET).createSignedUrls(photoPaths, 60 * 60)
-    for (const entry of signed ?? []) {
-      if (entry.path && entry.signedUrl) signedByPath.set(entry.path, entry.signedUrl)
+    const byPath = new Map((signed ?? []).map((e) => [e.path, e.signedUrl]))
+    for (const path of photoPaths) {
+      const url = byPath.get(path)
+      if (url) photoUrls.push(url)
     }
   }
-
-  const boardTeams: BoardTeam[] = (teams ?? []).map((team) => {
-    const spin = spinByTeam.get(team.id as string)
-    if (!spin) return { name: team.name as string, status: 'waiting' }
-    const photoUrl =
-      spin.photo_on_screen && spin.photo_path ? signedByPath.get(spin.photo_path) : undefined
-    return {
-      name: team.name as string,
-      status: spin.completed_at ? 'done' : 'spun',
-      segmentLabel: labelForKey(spin.segment_key),
-      ...(photoUrl ? { photoUrl } : {}),
-    }
-  })
 
   const repsBanked = (spins ?? [])
     .filter((s) => s.completed_at)
     .reduce((total, s) => total + repsForKey(s.segment_key as string), 0)
 
   return {
-    teams: boardTeams,
     spunCount: spins?.length ?? 0,
     teamCount: teams?.length ?? 0,
     repsBanked,
-    powerUpCount: (spins ?? []).filter((s) => s.segment_key === 'power_up').length,
+    photoUrls,
   }
 }
 

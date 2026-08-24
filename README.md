@@ -77,6 +77,32 @@ Suisse Int'l Mono is licensed from Swiss Typefaces and is served from
 Check that the company's licence covers web use before this goes further than a
 one-day internal event.
 
+## What the board shows, and what it does not
+
+The idle screen is the wheel itself, at rest, with two collective numbers above
+it and the shared photos below. That is the whole board.
+
+**There is no per-team status anywhere.** No grid of who has been up, no "9 of
+14 done" against a list of names, nothing that can be read as a table of who is
+keeping up. This is not a competition and a random draw cannot produce a fair
+ranking, so the screen does not imply one. The two numbers that remain — reps
+banked, and how many teams have spun — are about the room, not about anyone in
+it.
+
+That is enforced in `getBoard()`, not in the markup: team names, statuses and
+which segment each team drew are dropped **server-side** and never reach the
+browser at all. Per-team detail still exists for the organiser, behind
+`ADMIN_PIN` on `/admin`, where it is needed to fix a wrong spin.
+
+Photos stay on the board, without names. The consent copy promises *"your photo
+goes on the board"*, the best-photo prize needs them visible to mean anything,
+and a row of pictures with no labels attached is the one thing on the screen
+that is nobody's score. They are also the only colour in the design.
+
+The wheel rests at an angle where a divider, not a segment, sits under the
+pointer — at zero the prize wedge starts right at the tip and the wheel reads as
+though it has just landed on it.
+
 ## Setup
 
 ### 1. Supabase — already provisioned

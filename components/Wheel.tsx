@@ -35,22 +35,36 @@ export interface WheelProps {
   onSettled?: () => void
   /** Deterministic per spin, so the render is stable across re-renders. */
   jitter?: number
+  /** CSS length. Smaller at rest on the board than during the spin itself. */
+  size?: string
+  /**
+   * Angle the wheel sits at while idle. The board uses 180 so a divider, not a
+   * segment, lands under the pointer — at 0 the prize wedge starts right at the
+   * tip and the wheel reads as though it just landed on it.
+   */
+  idleRotation?: number
 }
 
 /** Where the wheel comes to rest. Known up front — the server decided already. */
-function restRotation(targetIndex: number | null, jitter: number): number {
-  if (targetIndex === null) return 0
+function restRotation(targetIndex: number | null, jitter: number, idle: number): number {
+  if (targetIndex === null) return idle
   // Segment i is centered at i * 60 + 30 degrees clockwise from top, so
   // rotating the wheel back by that amount brings it under the pointer.
   return 360 * 5 + (360 - (targetIndex * 60 + 30)) + jitter
 }
 
-export default function Wheel({ targetIndex, onSettled, jitter = 0 }: WheelProps) {
-  const [rotation, setRotation] = useState(0)
+export default function Wheel({
+  targetIndex,
+  onSettled,
+  jitter = 0,
+  size = 'min(80vh, 80vw)',
+  idleRotation = 0,
+}: WheelProps) {
+  const [rotation, setRotation] = useState(idleRotation)
   const [transition, setTransition] = useState('none')
   const settledRef = useRef(onSettled)
   settledRef.current = onSettled
-  const rest = restRotation(targetIndex, jitter)
+  const rest = restRotation(targetIndex, jitter, idleRotation)
 
   useEffect(() => {
     if (targetIndex === null) return
@@ -87,7 +101,7 @@ export default function Wheel({ targetIndex, onSettled, jitter = 0 }: WheelProps
   return (
     <div
       className="relative aspect-square"
-      style={{ width: 'min(80vh, 80vw)' }}
+      style={{ width: size }}
       role="img"
       aria-label="Spin wheel with six segments"
     >

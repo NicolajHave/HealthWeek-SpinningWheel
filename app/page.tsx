@@ -7,11 +7,10 @@ import { eventConfig } from '@/lib/config'
 export const dynamic = 'force-dynamic'
 
 const EMPTY_BOARD: BoardData = {
-  teams: [],
   spunCount: 0,
   teamCount: 0,
   repsBanked: 0,
-  powerUpCount: 0,
+  photoUrls: [],
 }
 
 export default async function Page({
