@@ -79,8 +79,14 @@ one-day internal event.
 
 ## What the board shows, and what it does not
 
-The idle screen is the wheel itself, at rest, with two collective numbers above
-it and the shared photos below. That is the whole board.
+The idle screen is the wheel itself, at rest, filling the right two-thirds of
+the screen, with a narrow column beside it carrying the two collective numbers,
+the call to action and the shared photos — the way the guideline sheets set an
+annotation column against the thing itself. That is the whole board.
+
+The two-column form is what buys the wheel its size: stacked, the numbers above
+and the photos below were eating the height it needed to read from the far side
+of the room. It is 86vh across at rest, and the spin itself goes to 90vh.
 
 **There is no per-team status anywhere.** No grid of who has been up, no "9 of
 14 done" against a list of names, nothing that can be read as a table of who is

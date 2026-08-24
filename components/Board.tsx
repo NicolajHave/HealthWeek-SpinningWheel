@@ -5,19 +5,14 @@ import RepCounter from './RepCounter'
 import Wheel from './Wheel'
 import { Lockup, RegistrationMarks } from './Marks'
 
-/** More than this and the strip stops fitting across the screen. */
-const MAX_PHOTOS = 8
+/** More than this and the strip stops fitting in the column. */
+const MAX_PHOTOS = 6
 
 /** A numbered section heading, as the guideline sheets set them. */
-function Section({ n, title, children, align = 'left' }: {
-  n: string
-  title: string
-  children: React.ReactNode
-  align?: 'left' | 'right'
-}) {
+function Section({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
-    <section style={{ textAlign: align }}>
-      <p className="label rule pt-[0.6em]" style={{ color: 'var(--color-mute)' }}>
+    <section>
+      <p className="label rule pt-[0.55em]" style={{ color: 'var(--color-mute)' }}>
         {n}. {title}
       </p>
       {children}
@@ -40,83 +35,93 @@ export default function Board({ board, canSpin, unlockFailed = false, kioskLocat
     <div className="relative h-full w-full">
       <RegistrationMarks />
 
-      <div className="flex h-full w-full flex-col gap-[clamp(0.75rem,1.4vh,1.6rem)] p-[clamp(1.5rem,2.6vw,3.5rem)]">
-        <header className="flex items-baseline justify-between gap-6">
-          <Lockup />
-          <p className="label" style={{ color: 'var(--color-mute)' }}>
-            One spin per team
-          </p>
-        </header>
+      {/*
+        Two columns, the way the guideline sheets set an annotation column
+        against the thing itself. It also buys the wheel the whole height of the
+        screen: stacked, everything above and below it was eating the space it
+        needed to be seen from the far side of the room.
+      */}
+      <div
+        className="grid h-full w-full gap-[clamp(1.5rem,3vw,4rem)] p-[clamp(1.5rem,2.6vw,3.5rem)]"
+        style={{ gridTemplateColumns: 'clamp(17rem, 29vw, 32rem) minmax(0, 1fr)' }}
+      >
+        <div className="flex min-h-0 flex-col gap-[clamp(0.9rem,2vh,2rem)]">
+          <header>
+            <Lockup />
+            <p className="label mt-[0.2em]" style={{ color: 'var(--color-mute)' }}>
+              One spin per team
+            </p>
+          </header>
 
-        {/* Two collective numbers, framing the wheel. Nothing that singles
-            anyone out. */}
-        <div className="grid gap-[clamp(1rem,2.5vw,3rem)]" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          {/* Two collective numbers. Nothing that singles anyone out. */}
           <Section n="1" title="Reps banked today">
             <div className="display" style={{ fontSize: 'var(--step-counter)', fontWeight: 400 }}>
               <RepCounter value={board.repsBanked} />
             </div>
           </Section>
 
-          <Section n="2" title="Teams that have spun" align="right">
+          <Section n="2" title="Teams that have spun">
             <p className="display" style={{ fontSize: 'var(--step-counter)', fontWeight: 400 }}>
               <span className="mono">{board.spunCount}</span>
               <span style={{ color: 'var(--color-mute)' }}>/{board.teamCount}</span>
             </p>
           </Section>
-        </div>
 
-        {/* The wheel is the idle state: the thing you came to use, in the room,
-            at rest. It says what this screen is for without a word of copy. */}
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-[clamp(0.75rem,2.5vh,2rem)]">
-          <Wheel targetIndex={null} size="min(43vh, 43vw)" idleRotation={180} />
+          <div className="flex min-h-0 flex-1 items-center">
+            {canSpin ? (
+              <p className="display pulse" style={{ fontSize: 'clamp(2.5rem, 4.2vw, 4.5rem)', fontWeight: 400 }}>
+                Tap to spin
+              </p>
+            ) : unlockFailed ? (
+              <p
+                className="label"
+                style={{ background: 'var(--color-ink)', color: 'var(--color-paper)', padding: '0.5em 1em' }}
+                role="status"
+              >
+                That link did not unlock this screen — check it and open it again
+              </p>
+            ) : (
+              <p className="label" style={{ color: 'var(--color-mute)' }}>
+                Spin at the screen in {kioskLocation}
+              </p>
+            )}
+          </div>
 
-          {canSpin ? (
-            <p className="display pulse" style={{ fontSize: 'var(--step-title)', fontWeight: 400 }}>
-              Tap to spin
-            </p>
-          ) : unlockFailed ? (
-            <p
-              className="label"
-              style={{ background: 'var(--color-ink)', color: 'var(--color-paper)', padding: '0.5em 1em' }}
-              role="status"
-            >
-              That link did not unlock this screen — check it and open it again
-            </p>
-          ) : (
-            <p className="label" style={{ color: 'var(--color-mute)' }}>
-              Spin at the screen in {kioskLocation}
-            </p>
-          )}
-        </div>
-
-        <footer className="rule flex flex-wrap items-center justify-between gap-[clamp(0.75rem,1.5vw,2rem)] pt-[0.7em]">
           {/* Photos without names. The prize stays real and the consent copy
               stays true — "your photo goes on the board" — without turning the
               wall into a register of who has been up. */}
-          {photos.length > 0 ? (
-            <ul className="flex items-center gap-[clamp(0.35rem,0.6vw,0.7rem)]">
-              {photos.map((url) => (
-                <li key={url}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className="fade-in object-cover"
-                    style={{
-                      height: 'clamp(3.5rem, 8vh, 6.5rem)',
-                      aspectRatio: '4 / 3',
-                      border: '2px solid var(--color-ink)',
-                    }}
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <span />
-          )}
+          <section>
+            <p className="label rule pt-[0.55em]" style={{ color: 'var(--color-mute)' }}>
+              3. Best team photo wins a {photoPrize}
+            </p>
+            {photos.length > 0 ? (
+              <ul
+                className="mt-[0.6em] grid gap-[clamp(0.3rem,0.45vw,0.55rem)]"
+                style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
+              >
+                {photos.map((url) => (
+                  <li key={url}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className="fade-in w-full object-cover"
+                      style={{ aspectRatio: '4 / 3', border: '2px solid var(--color-ink)' }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="label mt-[0.5em]" style={{ color: 'var(--color-mute)' }}>
+                Take one after your spin
+              </p>
+            )}
+          </section>
+        </div>
 
-          <p className="label">Best team photo wins a {photoPrize} — take one after your spin</p>
-        </footer>
+        <div className="flex min-h-0 items-center justify-center">
+          <Wheel targetIndex={null} size="min(86vh, 56vw)" idleRotation={180} />
+        </div>
       </div>
     </div>
   )

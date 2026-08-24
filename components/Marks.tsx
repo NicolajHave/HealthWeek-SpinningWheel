@@ -40,9 +40,11 @@ export function Lockup({ invert = false }: { invert?: boolean }) {
         fontWeight: 400,
         letterSpacing: '-0.03em',
         color: invert ? 'var(--color-paper)' : 'var(--color-ink)',
-        // Clear space: 25% of the wordmark height on all sides (H/4).
-        padding: '0.25em',
         display: 'inline-block',
+        // Clear space is H/4 on all sides. It is left to the layout rather than
+        // padded in here: every screen sets the wordmark against page padding
+        // far larger than a quarter of its height, and padding it as well only
+        // indented it out of alignment with the column it heads.
       }}
     >
       Selected Health Week

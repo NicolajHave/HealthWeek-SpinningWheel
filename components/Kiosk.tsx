@@ -211,6 +211,7 @@ export default function Kiosk({
             key={result?.segmentIndex ?? 'wheel'}
             targetIndex={result?.segmentIndex ?? null}
             jitter={jitter}
+            size="min(90vh, 90vw)"
             onSettled={() => setStage('result')}
           />
         </div>
