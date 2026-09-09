@@ -40,22 +40,50 @@ export const EXERCISE_INDEXES: readonly number[] = SEGMENTS.reduce<number[]>(
   [],
 )
 
+const PRIZE_INDEX = SEGMENTS.findIndex((segment) => segment.type === 'prize')
+
+export interface PrizeOdds {
+  /** Power-Ups already handed out today. */
+  awarded: number
+  /** Spins already taken today, not counting the one being decided. */
+  spinsSoFar: number
+  /** Teams on the list. */
+  teamCount: number
+  /** How many Power-Ups the day should hand out. Negative leaves the wheel untuned. */
+  target: number
+}
+
 /**
  * Picks the wheel position for a spin.
  *
- * A prize roll is re-rolled across the five exercises once `powerUpsAwarded`
- * has reached `limit`; a negative limit means no ceiling. Pure so the ceiling
- * can be tested without a database.
+ * The prize is drawn the way you would deal winning tickets out of a hat:
+ * the chance is `prizes left / teams left`, so it rises through the day as the
+ * queue shortens and the exact target is reached by the last team. Every team
+ * has the same overall chance — target / teamCount — and there is no cadence to
+ * notice or position in the queue worth playing for.
+ *
+ * A negative target restores a flat one in six.
+ *
+ * Pure, so the odds can be tested without a database.
  */
 export function chooseSegmentIndex(
   randomInt: (min: number, maxExclusive: number) => number,
-  powerUpsAwarded: number,
-  limit: number,
+  odds: PrizeOdds,
 ): number {
-  const index = randomInt(0, SEGMENT_COUNT)
-  if (SEGMENTS[index].type !== 'prize') return index
-  if (limit < 0 || powerUpsAwarded < limit) return index
-  return EXERCISE_INDEXES[randomInt(0, EXERCISE_INDEXES.length)]
+  const exercise = () => EXERCISE_INDEXES[randomInt(0, EXERCISE_INDEXES.length)]
+  const { awarded, spinsSoFar, teamCount, target } = odds
+
+  if (target < 0) return randomInt(0, SEGMENT_COUNT)
+
+  const prizesLeft = target - awarded
+  if (prizesLeft <= 0) return exercise()
+
+  // This team is included in what is left to draw from.
+  const teamsLeft = teamCount - spinsSoFar
+  if (teamsLeft <= 0) return exercise()
+  if (teamsLeft <= prizesLeft) return PRIZE_INDEX
+
+  return randomInt(0, teamsLeft) < prizesLeft ? PRIZE_INDEX : exercise()
 }
 
 const BY_KEY = new Map(SEGMENTS.map((s, i) => [s.key, { ...s, index: i }]))

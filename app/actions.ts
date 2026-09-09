@@ -48,12 +48,11 @@ export type SpinResult =
 export type SimpleResult = { ok: true } | { ok: false; reason: 'not_kiosk' | 'error' }
 
 /**
- * Ceiling on how many Power-Ups the wheel will hand out in a day. Once it is
- * reached, a prize roll is re-rolled across the five exercises instead. Not
- * surfaced anywhere in the UI. Override with POWER_UP_LIMIT if the prize budget
- * changes.
+ * How many Power-Ups the day hands out, so the kitchen can be given a number.
+ * The wheel tunes each draw to reach it exactly. Not surfaced anywhere in the
+ * UI. POWER_UP_LIMIT is the previous name for the same setting.
  */
-const POWER_UP_LIMIT = Number(process.env.POWER_UP_LIMIT ?? 3)
+const POWER_UP_TARGET = Number(process.env.POWER_UP_TARGET ?? process.env.POWER_UP_LIMIT ?? 3)
 
 /* ------------------------------------------------------------- board read */
 
@@ -152,12 +151,19 @@ export async function spin(teamId: string): Promise<SpinResult> {
   try {
     const db = supabaseAdmin()
 
-    const { count: powerUpsAwarded } = await db
-      .from(SPINS)
-      .select('team_id', { count: 'exact', head: true })
-      .eq('segment_key', 'power_up')
+    // The draw depends on how much of the day is left, so it needs the shape of
+    // the room: teams on the list, spins taken, prizes already gone.
+    const [{ count: teamCount }, { data: takenSpins }] = await Promise.all([
+      db.from(TEAMS).select('id', { count: 'exact', head: true }),
+      db.from(SPINS).select('segment_key'),
+    ])
 
-    const segmentIndex = chooseSegmentIndex(crypto.randomInt, powerUpsAwarded ?? 0, POWER_UP_LIMIT)
+    const segmentIndex = chooseSegmentIndex(crypto.randomInt, {
+      awarded: (takenSpins ?? []).filter((s) => s.segment_key === 'power_up').length,
+      spinsSoFar: takenSpins?.length ?? 0,
+      teamCount: teamCount ?? 0,
+      target: POWER_UP_TARGET,
+    })
     const segment = SEGMENTS[segmentIndex]
 
     // Insert-then-catch, not check-then-insert: this closes the double-click
