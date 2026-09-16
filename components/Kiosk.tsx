@@ -25,6 +25,17 @@ const IDLE_MS = 30_000
 /** RESULT and PHOTO get longer: teams need time to actually do the exercise. */
 const IDLE_LONG_MS = 90_000
 
+/**
+ * Team names run from "E-com" to "Sales Region North/West + ROW + Benelux", so
+ * the reveal sizes itself to the name rather than letting the long ones run off
+ * the screen or collapse into four thin lines.
+ */
+function nameStyle(name: string): { fontSize: string; maxWidth: string } {
+  if (name.length <= 14) return { fontSize: 'var(--step-headline)', maxWidth: '14ch' }
+  if (name.length <= 26) return { fontSize: 'calc(var(--step-headline) * 0.68)', maxWidth: '18ch' }
+  return { fontSize: 'calc(var(--step-headline) * 0.5)', maxWidth: '22ch' }
+}
+
 interface SpinState {
   segment: Segment
   segmentIndex: number
@@ -187,7 +198,7 @@ export default function Kiosk({
           <p className="label" style={{ color: 'var(--color-mute)' }}>
             One spin. Make it count.
           </p>
-          <h1 className="display" style={{ fontSize: 'var(--step-headline)', fontWeight: 400, maxWidth: '16ch' }}>
+          <h1 className="display" style={{ ...nameStyle(team?.name ?? ''), fontWeight: 400 }}>
             {team?.name}
           </h1>
           <button

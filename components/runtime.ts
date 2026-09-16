@@ -110,3 +110,18 @@ export function usePrefersReducedMotion(): boolean {
   }, [])
   return reduced
 }
+
+/**
+ * "Tap" is wrong in front of a plain monitor driven by a mouse, and "click" is
+ * wrong on a touchscreen. Ask the device instead of guessing. Starts at the
+ * touch wording so the server and the first client render agree, then corrects
+ * itself on mount.
+ */
+export function usePointerVerb(): 'Tap' | 'Click' {
+  const [verb, setVerb] = useState<'Tap' | 'Click'>('Tap')
+  useEffect(() => {
+    const touch = window.matchMedia('(any-pointer: coarse)').matches
+    setVerb(touch ? 'Tap' : 'Click')
+  }, [])
+  return verb
+}

@@ -4,6 +4,7 @@ import type { Board as BoardData } from '@/app/actions'
 import RepCounter from './RepCounter'
 import Wheel from './Wheel'
 import { Lockup, RegistrationMarks } from './Marks'
+import { usePointerVerb } from './runtime'
 
 /** More than this and the strip stops fitting in the column. */
 const MAX_PHOTOS = 6
@@ -30,6 +31,7 @@ export interface BoardProps {
 
 export default function Board({ board, canSpin, unlockFailed = false, kioskLocation, photoPrize }: BoardProps) {
   const photos = board.photoUrls.slice(0, MAX_PHOTOS)
+  const verb = usePointerVerb()
 
   return (
     <div className="relative h-full w-full">
@@ -70,7 +72,7 @@ export default function Board({ board, canSpin, unlockFailed = false, kioskLocat
           <div className="flex min-h-0 flex-1 items-center">
             {canSpin ? (
               <p className="display pulse" style={{ fontSize: 'clamp(2.5rem, 4.2vw, 4.5rem)', fontWeight: 400 }}>
-                Tap to spin
+                {verb} to spin
               </p>
             ) : unlockFailed ? (
               <p
