@@ -17,7 +17,7 @@ insert into hw_teams (name, pin, sort_order) values
   ('Sustainability + Sourcing + Direct', '3607', 3),
   ('Buying Knit + Jersey', '2778', 4),
   ('Buying Tailoring', '7054', 5),
-  ('Buying Accessories + Shoes', '9264', 6),
+  ('Buying Accessories & Shoes', '9264', 6),
   ('Buying Jeans + Pants', '4952', 7),
   ('Buying Outerwear + Leather', '8175', 8),
   ('Buying Woven', '9763', 9),
@@ -29,8 +29,7 @@ insert into hw_teams (name, pin, sort_order) values
   ('Design Men', '7830', 15),
   ('Pattern Design', '9693', 16),
   ('B2B Communications', '7636', 17),
-  ('Omni Buying', '3095', 18),
-  ('E-com', '8939', 19),
-  ('Retail', '3985', 20),
-  ('BS Finance', '8805', 21)
+  ('Omni + Retail', '3095', 18),
+  ('E-com + GTM + CRM Media + Tanja + Eileen', '8939', 19),
+  ('BS Finance', '8805', 20)
 on conflict (pin) do nothing;
