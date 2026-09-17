@@ -94,7 +94,7 @@ export default function Board({ board, canSpin, unlockFailed = false, kioskLocat
               wall into a register of who has been up. */}
           <section>
             <p className="label rule pt-[0.55em]" style={{ color: 'var(--color-mute)' }}>
-              3. Best team photo wins a {photoPrize}
+              3. Best team photo wins {photoPrize}
             </p>
             {photos.length > 0 ? (
               <ul

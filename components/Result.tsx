@@ -52,7 +52,7 @@ export default function Result({
 
         {isPrize ? (
           <p className="display" style={{ fontSize: 'var(--step-title)', fontWeight: 400, maxWidth: '26ch' }}>
-            Your team&rsquo;s {powerUpPrize} are waiting at {powerUpLocation}. Just say your team name.
+            {powerUpPrize} is waiting for your team at {powerUpLocation}. Just say your team name.
           </p>
         ) : (
           <>
@@ -60,7 +60,7 @@ export default function Result({
             {/* The nudge that keeps photo participation alive: ask for the
                 photo while they are still warm, not after they have walked off. */}
             <p className="label" style={{ maxWidth: '40ch', lineHeight: 1.6 }}>
-              One more rep for the camera? Best team photo today wins a {photoPrize}
+              One more rep for the camera? Best team photo today wins {photoPrize}
             </p>
           </>
         )}

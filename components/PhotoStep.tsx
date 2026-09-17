@@ -126,7 +126,7 @@ export default function PhotoStep({ teamId, photoPrize, onDone }: PhotoStepProps
         <h1 className="display" style={{ fontSize: 'var(--step-headline)', fontWeight: 400 }}>
           Take a team photo?
         </h1>
-        <p className="label">Best one today wins a {photoPrize}</p>
+        <p className="label">Best one today wins {photoPrize}</p>
         <div className="flex flex-wrap justify-center gap-[clamp(1rem,2vw,2rem)]">
           <button type="button" className="btn btn-primary" onClick={() => void startCamera()}>
             Take a photo
